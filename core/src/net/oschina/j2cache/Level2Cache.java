@@ -122,7 +122,6 @@ public interface Level2Cache extends Cache {
         }
     }
 
-    @Override
     default Object get(String key, ClassLoader classLoader) {
         byte[] bytes = getBytes(key);
         try {
@@ -148,7 +147,6 @@ public interface Level2Cache extends Cache {
         return results;
     }
 
-    @Override
     default Map<String, Object> get(Collection<String> keys, ClassLoader classLoader) {
         Map<String, Object> results = new HashMap<>();
         if(keys.size() > 0) {

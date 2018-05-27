@@ -33,29 +33,12 @@ public interface Cache {
 	 */
 	Object get(String key) ;
 
-    /**
-     * Get an item from the cache, nontransactionally
-     * 
-     * @param key cache key
-     * @param classLoader ClassLoader
-     * @return the cached object or null
-     */
-    Object get(String key, ClassLoader classLoader) ;
-
 	/**
 	 * 批量获取缓存对象
 	 * @param keys cache keys
 	 * @return return key-value objects
 	 */
 	Map<String, Object> get(Collection<String> keys);
-
-    /**
-     * 批量获取缓存对象
-     * @param keys cache keys
-     * @param classLoader ClassLoader
-     * @return return key-value objects
-     */
-    Map<String, Object> get(Collection<String> keys, ClassLoader classLoader);
 
     /**
 	 * 判断缓存是否存在

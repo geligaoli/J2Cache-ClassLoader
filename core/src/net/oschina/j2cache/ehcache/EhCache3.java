@@ -106,13 +106,4 @@ public class EhCache3 implements Level1Cache, CacheEventListener {
         }
     }
     
-    @Override
-    public Object get(String key, ClassLoader classLoader) {
-        return get(key);
-    }
-
-    @Override
-    public Map<String, Object> get(Collection<String> keys, ClassLoader classLoader) {
-        return get(keys);
-    }
 }

@@ -161,14 +161,4 @@ public class EhCache implements Level1Cache, CacheEventListener {
 	@Override
 	public void dispose() {}
 
-
-    @Override
-    public Object get(String key, ClassLoader classLoader) {
-        return get(key);
-    }
-
-    @Override
-    public Map<String, Object> get(Collection<String> keys, ClassLoader classLoader) {
-        return get(keys);
-    }
 }
