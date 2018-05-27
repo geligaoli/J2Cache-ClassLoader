@@ -71,7 +71,7 @@ public abstract class CacheChannel implements Closeable , AutoCloseable {
 	 * 读取缓存（用户无需判断返回的对象是否为空）
 	 * @param region Cache region name
 	 * @param key Cache data key
-	 * @param classlocader ClassLoader
+	 * @param classloader Class Loader
      * @param cacheNullObject 是否缓存空对象
 	 * @return cache object
 	 */
@@ -153,7 +153,7 @@ public abstract class CacheChannel implements Closeable , AutoCloseable {
      * 批量读取缓存中的对象（用户无需判断返回的对象是否为空）
      * @param region Cache region name
      * @param keys cache keys
-     * @param classlocader ClassLoader
+     * @param classloader Class Loader
      * @return cache object
      */
     public Map<String, CacheObject> get(String region, Collection<String> keys, ClassLoader classloader)  {
