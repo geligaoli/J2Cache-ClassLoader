@@ -122,6 +122,15 @@ public interface Level2Cache extends Cache {
         }
     }
 
+    default Object get(String key, ClassLoader classLoader) {
+        byte[] bytes = getBytes(key);
+        try {
+            return SerializationUtils.deserialize(bytes, classLoader);
+        } catch (IOException e) {
+            throw new CacheException(e);
+        }
+    }
+
     @Override
     default Map<String, Object> get(Collection<String> keys) {
         Map<String, Object> results = new HashMap<>();
@@ -131,6 +140,21 @@ public interface Level2Cache extends Cache {
             try {
                 for (String key : keys)
                     results.put(key, SerializationUtils.deserialize(bytes.get(i++)));
+            } catch (IOException e) {
+                throw new CacheException(e);
+            }
+        }
+        return results;
+    }
+
+    default Map<String, Object> get(Collection<String> keys, ClassLoader classLoader) {
+        Map<String, Object> results = new HashMap<>();
+        if(keys.size() > 0) {
+            List<byte[]> bytes = getBytes(keys);
+            int i = 0;
+            try {
+                for (String key : keys)
+                    results.put(key, SerializationUtils.deserialize(bytes.get(i++), classLoader));
             } catch (IOException e) {
                 throw new CacheException(e);
             }

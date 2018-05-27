@@ -47,8 +47,13 @@ public class FstSnappySerializer implements Serializer {
 
 	@Override
 	public Object deserialize(byte[] bytes) throws IOException {
-		if (bytes == null || bytes.length == 0)
-			return null;
-		return inner.deserialize(Snappy.uncompress(bytes));
+        return this.deserialize(bytes, Thread.currentThread().getContextClassLoader());
 	}
+
+    @Override
+    public Object deserialize(byte[] bytes, ClassLoader classLoader) throws IOException {
+        if (bytes == null || bytes.length == 0)
+            return null;
+        return inner.deserialize(Snappy.uncompress(bytes), classLoader);
+    }
 }

@@ -55,13 +55,19 @@ public class FSTSerializer implements Serializer {
 
 	@Override
 	public Object deserialize(byte[] bytes) throws IOException {
-		if(bytes == null || bytes.length == 0)
-			return null;
-		try (FSTObjectInput in = new FSTObjectInput(new ByteArrayInputStream(bytes), fstConfiguration)){
-			return in.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new CacheException(e);
-		}
+        return this.deserialize(bytes, Thread.currentThread().getContextClassLoader());
 	}
+
+    @Override
+    public Object deserialize(byte[] bytes, ClassLoader classLoader) throws IOException {
+        if(bytes == null || bytes.length == 0)
+            return null;
+        fstConfiguration.setClassLoader(classLoader);
+        try (FSTObjectInput in = new FSTObjectInput(new ByteArrayInputStream(bytes), fstConfiguration)){
+            return in.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new CacheException(e);
+        }
+    }
 
 }

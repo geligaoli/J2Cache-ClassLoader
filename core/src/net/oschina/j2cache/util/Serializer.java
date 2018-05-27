@@ -46,4 +46,13 @@ public interface Serializer {
 	 */
 	Object deserialize(byte[] bytes) throws IOException ;
 	
+    /**
+     * 反序列化到对象
+     * @param bytes  反序列化的数据
+     * @param classLoader 自定义类加载器
+     * @return 返回序列化对象
+     * @throws IOException io exception
+     */
+    Object deserialize(byte[] bytes, ClassLoader classLoader) throws IOException ;
+    
 }

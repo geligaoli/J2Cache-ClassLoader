@@ -46,12 +46,19 @@ public class KryoSerializer implements Serializer {
 	}
 
 	@Override
-	public Object deserialize(byte[] bits) {
-		if(bits == null || bits.length == 0)
-			return null;
-		try (Input ois = new Input(new ByteArrayInputStream(bits))){
-			return new Kryo().readClassAndObject(ois);
-		}
+	public Object deserialize(byte[] bytes) {
+        return this.deserialize(bytes, Thread.currentThread().getContextClassLoader());
 	}
+
+    @Override
+    public Object deserialize(byte[] bytes, ClassLoader classLoader) {
+        if(bytes == null || bytes.length == 0)
+            return null;
+        try (Input ois = new Input(new ByteArrayInputStream(bytes))){
+            Kryo kryo = new Kryo();
+            kryo.setClassLoader(classLoader);
+            return kryo.readClassAndObject(ois);
+        }
+    }
 	
 }
