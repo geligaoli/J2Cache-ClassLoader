@@ -41,15 +41,20 @@ public class JavaSerializer implements Serializer {
 	}
 
 	@Override
-	public Object deserialize(byte[] bits) throws IOException {
-		if(bits == null || bits.length == 0)
-			return null;
-		ByteArrayInputStream bais = new ByteArrayInputStream(bits);
-		try (ObjectInputStream ois = new ObjectInputStream(bais)){
-			return ois.readObject();
-		} catch (ClassNotFoundException e) {
-			throw new CacheException(e);
-		}
+	public Object deserialize(byte[] bytes) throws IOException {
+		return this.deserialize(bytes, Thread.currentThread().getContextClassLoader());
 	}
+
+    @Override
+    public Object deserialize(byte[] bytes, ClassLoader classLoader) throws IOException {
+        if(bytes == null || bytes.length == 0)
+            return null;
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        try (ClassLoadingObjectInputStream ois = new ClassLoadingObjectInputStream(bais, classLoader)){
+            return ois.readObject();
+        } catch (ClassNotFoundException e) {
+            throw new CacheException(e);
+        }
+    }
 	
 }

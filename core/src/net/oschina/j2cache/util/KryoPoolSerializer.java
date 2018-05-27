@@ -19,6 +19,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
+import java.io.IOException;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -56,16 +57,7 @@ public class KryoPoolSerializer implements Serializer{
      */
     @Override
     public Object deserialize(byte[] bytes) {
-        KryoHolder kryoHolder = null;
-        if (bytes == null)
-            return null;
-        try {
-            kryoHolder = KryoPoolImpl.getInstance().get();
-            kryoHolder.input.setBuffer(bytes, 0, bytes.length);//call it ,and then use input object  ,discard any array
-            return kryoHolder.kryo.readClassAndObject(kryoHolder.input);
-        } finally {
-            KryoPoolImpl.getInstance().offer(kryoHolder);
-        }
+        return this.deserialize(bytes, Thread.currentThread().getContextClassLoader());
     }
 
     /**
@@ -169,6 +161,21 @@ public class KryoPoolSerializer implements Serializer{
     @Override
     public String name() {
         return "kryo-pool";
+    }
+
+    @Override
+    public Object deserialize(byte[] bytes, ClassLoader classLoader) {
+        KryoHolder kryoHolder = null;
+        if (bytes == null)
+            return null;
+        try {
+            kryoHolder = KryoPoolImpl.getInstance().get();
+            kryoHolder.input.setBuffer(bytes, 0, bytes.length);//call it ,and then use input object  ,discard any array
+            kryoHolder.kryo.setClassLoader(classLoader);
+            return kryoHolder.kryo.readClassAndObject(kryoHolder.input);
+        } finally {
+            KryoPoolImpl.getInstance().offer(kryoHolder);
+        }
     }
 
 }

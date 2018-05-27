@@ -81,4 +81,14 @@ public class CaffeineCache implements Level1Cache {
     public void clear() {
         cache.invalidateAll();
     }
+
+    @Override
+    public Object get(String key, ClassLoader classLoader) {
+        return get(key);
+    }
+
+    @Override
+    public Map<String, Object> get(Collection<String> keys, ClassLoader classLoader) {
+        return get(keys);
+    }
 }

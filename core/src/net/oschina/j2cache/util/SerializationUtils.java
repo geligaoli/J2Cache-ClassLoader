@@ -91,4 +91,18 @@ public class SerializationUtils {
             return null;
         return g_serializer.deserialize(bytes);
     }
+
+    /**
+     * 反序列化
+     * @param bytes 待反序列化的字节数组
+     * @param classLoader 自定义类加载器
+     * @return 序列化后的对象
+     * @throws IOException io exception
+     */
+    public static Object deserialize(byte[] bytes, ClassLoader classLoader) throws IOException {
+        if (bytes == null || bytes.length == 0)
+            return null;
+        return g_serializer.deserialize(bytes, classLoader);
+    }
+
 }

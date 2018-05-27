@@ -56,14 +56,26 @@ public abstract class CacheChannel implements Closeable , AutoCloseable {
 	 */
 	protected abstract void sendEvictCmd(String region, String...keys);
 
+	   /**
+     * 读取缓存（用户无需判断返回的对象是否为空）
+     * @param region Cache region name
+     * @param key Cache data key
+     * @param cacheNullObject 是否缓存空对象
+     * @return cache object
+     */
+    public CacheObject get(String region, String key, boolean...cacheNullObject)  {
+        return this.get(region, key, Thread.currentThread().getContextClassLoader(), cacheNullObject);
+    }
+	
 	/**
 	 * 读取缓存（用户无需判断返回的对象是否为空）
 	 * @param region Cache region name
 	 * @param key Cache data key
+	 * @param classlocader ClassLoader
      * @param cacheNullObject 是否缓存空对象
 	 * @return cache object
 	 */
-	public CacheObject get(String region, String key, boolean...cacheNullObject)  {
+	public CacheObject get(String region, String key, ClassLoader classloader, boolean...cacheNullObject)  {
 
 		CacheObject obj = new CacheObject(region, key, CacheObject.LEVEL_1);
 		obj.setValue(CacheProviderHolder.getLevel1Cache(region).get(key));
@@ -78,7 +90,7 @@ public abstract class CacheChannel implements Closeable , AutoCloseable {
 
 			try {
 				obj.setLevel(CacheObject.LEVEL_2);
-				obj.setValue(CacheProviderHolder.getLevel2Cache(region).get(key));
+				obj.setValue(CacheProviderHolder.getLevel2Cache(region).get(key, classloader));
 				if (obj.rawValue() != null)
 					CacheProviderHolder.getLevel1Cache(region).put(key, obj.rawValue());
 				else {
@@ -134,24 +146,35 @@ public abstract class CacheChannel implements Closeable , AutoCloseable {
 	 * @return cache object
 	 */
 	public Map<String, CacheObject> get(String region, Collection<String> keys)  {
-		final Map<String, Object> objs = CacheProviderHolder.getLevel1Cache(region).get(keys);
-		List<String> level2Keys = keys.stream().filter(k -> !objs.containsKey(k) || objs.get(k) == null).collect(Collectors.toList());
-		Map<String, CacheObject> results = objs.entrySet().stream().filter(p -> p.getValue() != null).collect(
-			Collectors.toMap(
-				p -> p.getKey(),
-				p -> new CacheObject(region, p.getKey(), CacheObject.LEVEL_1, p.getValue())
-			)
-		);
-
-		Map<String, Object> objs_level2 = CacheProviderHolder.getLevel2Cache(region).get(level2Keys);
-		objs_level2.forEach((k,v) -> {
-			results.put(k, new CacheObject(region, k, CacheObject.LEVEL_2, v));
-			if (v != null)
-				CacheProviderHolder.getLevel1Cache(region).put(k, v);
-		});
-
-		return results;
+        return this.get(region, keys, Thread.currentThread().getContextClassLoader());
 	}
+	
+	   /**
+     * 批量读取缓存中的对象（用户无需判断返回的对象是否为空）
+     * @param region Cache region name
+     * @param keys cache keys
+     * @param classlocader ClassLoader
+     * @return cache object
+     */
+    public Map<String, CacheObject> get(String region, Collection<String> keys, ClassLoader classloader)  {
+        final Map<String, Object> objs = CacheProviderHolder.getLevel1Cache(region).get(keys);
+        List<String> level2Keys = keys.stream().filter(k -> !objs.containsKey(k) || objs.get(k) == null).collect(Collectors.toList());
+        Map<String, CacheObject> results = objs.entrySet().stream().filter(p -> p.getValue() != null).collect(
+            Collectors.toMap(
+                p -> p.getKey(),
+                p -> new CacheObject(region, p.getKey(), CacheObject.LEVEL_1, p.getValue())
+            )
+        );
+
+        Map<String, Object> objs_level2 = CacheProviderHolder.getLevel2Cache(region).get(level2Keys, classloader);
+        objs_level2.forEach((k,v) -> {
+            results.put(k, new CacheObject(region, k, CacheObject.LEVEL_2, v));
+            if (v != null)
+                CacheProviderHolder.getLevel1Cache(region).put(k, v);
+        });
+
+        return results;
+    }
 
 	/**
 	 * 使用数据加载器的批量缓存读取
