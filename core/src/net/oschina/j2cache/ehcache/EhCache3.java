@@ -105,5 +105,4 @@ public class EhCache3 implements Level1Cache, CacheEventListener {
             this.listener.notifyElementExpired(name, (String)cacheEvent.getKey());
         }
     }
-    
 }

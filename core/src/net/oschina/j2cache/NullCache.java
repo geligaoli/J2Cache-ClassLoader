@@ -92,14 +92,4 @@ public class NullCache implements Level1Cache, Level2Cache {
 	public void clear() {
 
 	}
-	
-    @Override
-    public Object get(String key, ClassLoader classLoader) {
-        return null;
-    }
-
-    @Override
-    public Map<String, Object> get(Collection<String> keys, ClassLoader classLoader) {
-        return null;
-    }
 }

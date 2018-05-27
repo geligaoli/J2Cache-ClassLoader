@@ -40,7 +40,7 @@ public interface Cache {
 	 */
 	Map<String, Object> get(Collection<String> keys);
 
-    /**
+	/**
 	 * 判断缓存是否存在
 	 * @param key cache key
 	 * @return true if key exists

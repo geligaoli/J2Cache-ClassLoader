@@ -146,7 +146,7 @@ public abstract class CacheChannel implements Closeable , AutoCloseable {
 	 * @return cache object
 	 */
 	public Map<String, CacheObject> get(String region, Collection<String> keys)  {
-        return this.get(region, keys, Thread.currentThread().getContextClassLoader());
+	    return this.get(region, keys, Thread.currentThread().getContextClassLoader());
 	}
 	
 	   /**
