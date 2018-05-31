@@ -135,7 +135,7 @@ public class KryoPoolSerializer implements Serializer{
          */
         public KryoHolder creatInstnce() {
             Kryo kryo = new Kryo();
-            kryo.setReferences(false);//
+            // kryo.setReferences(false); // 这样会内存溢出
             return new KryoHolder(kryo);
         }
 
