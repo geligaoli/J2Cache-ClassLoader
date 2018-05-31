@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class RedisGenericCache implements Level2Cache {
 
     private final static Logger log = LoggerFactory.getLogger(RedisGenericCache.class);
+    private static String SYSTEM_TIME = null;
 
     private String namespace;
     private String region;
@@ -39,7 +40,16 @@ public class RedisGenericCache implements Level2Cache {
             region = "_"; // 缺省region
 
         this.client = client;
-        this.namespace = namespace;
+        if ("CurrentTimeMillis".equalsIgnoreCase(namespace)) {
+            if (null == SYSTEM_TIME) {
+                synchronized(RedisGenericCache.class) {
+                    if (null == SYSTEM_TIME)
+                        SYSTEM_TIME = String.valueOf(System.currentTimeMillis());
+                }
+            }
+            this.namespace = SYSTEM_TIME;
+        } else
+            this.namespace = namespace;
         this.region = _regionName(region);
     }
 
