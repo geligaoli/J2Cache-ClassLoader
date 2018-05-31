@@ -118,7 +118,8 @@ public interface Level2Cache extends Cache {
         try {
             return SerializationUtils.deserialize(bytes);
         } catch (IOException e) {
-            throw new CacheException(e);
+            this.evict(key);
+            return null;
         }
     }
 
@@ -127,7 +128,8 @@ public interface Level2Cache extends Cache {
         try {
             return SerializationUtils.deserialize(bytes, classLoader);
         } catch (IOException e) {
-            throw new CacheException(e);
+            this.evict(key);
+            return null;
         }
     }
 
@@ -137,11 +139,13 @@ public interface Level2Cache extends Cache {
         if(keys.size() > 0) {
             List<byte[]> bytes = getBytes(keys);
             int i = 0;
-            try {
-                for (String key : keys)
+            for (String key : keys) {
+                try {
                     results.put(key, SerializationUtils.deserialize(bytes.get(i++)));
-            } catch (IOException e) {
-                throw new CacheException(e);
+                } catch (IOException e) {
+                    this.evict(key);
+                    results.put(key, null);
+                }
             }
         }
         return results;
@@ -152,11 +156,13 @@ public interface Level2Cache extends Cache {
         if(keys.size() > 0) {
             List<byte[]> bytes = getBytes(keys);
             int i = 0;
-            try {
-                for (String key : keys)
+            for (String key : keys) {
+                try {
                     results.put(key, SerializationUtils.deserialize(bytes.get(i++), classLoader));
-            } catch (IOException e) {
-                throw new CacheException(e);
+                } catch (IOException e) {
+                    this.evict(key);
+                    results.put(key, null);
+                }
             }
         }
         return results;

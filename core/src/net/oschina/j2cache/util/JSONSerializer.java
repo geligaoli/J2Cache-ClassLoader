@@ -15,6 +15,8 @@
  */
 package net.oschina.j2cache.util;
 
+import java.io.IOException;
+
 import org.nustaq.serialization.FSTConfiguration;
 
 /**
@@ -38,6 +40,12 @@ public class JSONSerializer implements Serializer {
 
     @Override
     public Object deserialize(byte[] bytes) {
+        return conf.asObject(bytes);
+    }
+
+    @Override
+    public Object deserialize(byte[] bytes, ClassLoader classLoader) throws IOException {
+        conf.setClassLoader(classLoader);
         return conf.asObject(bytes);
     }
 

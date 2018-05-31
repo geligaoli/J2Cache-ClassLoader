@@ -7,7 +7,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>j2cache-core-classloader</artifactId>
+    <artifactId>j2cache-core</artifactId>
 
     <dependencies>
 
