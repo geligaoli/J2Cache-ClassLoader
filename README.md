@@ -5,8 +5,11 @@
 ## 本ClassLoader分支说明
 
 本ClassLoader分支，是在 红薯J2Cache的基础上，在反序列化的功能上，做了修改和增强。调用接口保持了代码兼容，但功能有所变动。
+
 主要功能在于设定反序列化时使用指定的Classloader。对同一个类序列化在Level2Cache上做新旧版本隔离，避免新旧版本造成的异常（尤其在分布式系统上）。
+
 比如web平台，每个Context都是独立的Classloader，采用系统级Classloader或者其他的，反序列化生成的对象，就会出现ClassCastException。
+
 序列化的技术上，kryo通常是最快的，生成的字节也是最小的。在解决新旧类冲突的基础上，推荐使用kryo-shaded。
 
 
