@@ -2,6 +2,37 @@
 
 # J2Cache —— 基于内存和 Redis 的两级 Java 缓存框架
 
+## 本ClassLoader分支说明
+
+本ClassLoader分支，是在 红薯J2Cache的基础上，在反序列化的功能上，做了修改和增强。调用接口保持了代码兼容，但功能有所变动。
+主要功能在于设定反序列化时使用指定的Classloader。对同一个类序列化在Level2Cache上做新旧版本隔离，避免新旧版本造成的异常（尤其在分布式系统上）。
+比如web平台，每个Context都是独立的Classloader，采用系统级Classloader或者其他的，反序列化生成的对象，就会出现ClassCastException。
+序列化的技术上，kryo通常是最快的，生成的字节也是最小的。在解决新旧类冲突的基础上，推荐使用kryo-shaded。
+
+
+- Level2Cache的反序列化，ClassLoader默认采用了 Thread.currentThread().getContextClassLoader()
+- Level2Cache接口及实现类，增加了带有ClassLoader参数的get函数。
+- 反序列化操作异常时，不再抛CacheException。而是从该二级Cache中删除该key，并返回null。由调用方来决定是否重新put。
+- j2cache.properties配置redis.namespace，当设置为 CurrentTimeMillis，namespace将设定为启动时的System.currentTimeMillis()。在调试的时候很有用，可以避免同一个类，新旧版本序列化上的冲突。当发布release版本时，可以设定为一个新的固定的值，这样就可以和旧系统中的缓存隔离开了，同样避免了序列化上新旧冲突。缺点就是redis占用会高一些。
+- 开启了kryo默认的循环应用检测，毕竟慢一点总比崩溃了好。
+
+
+## 本ClassLoader分支使用方式
+
+**一. 引用 Maven**
+
+```
+<dependency>
+  <groupId>net.oschina.j2cache</groupId>
+  <artifactId>j2cache-core-classloader</artifactId>
+  <version>xxxxx</version>
+</dependency>
+```
+**二. 其他与原版相同**
+
+
+# J2Cache —— 基于内存和 Redis 的两级 Java 缓存框架
+
 专用QQ群: `379110351`
 
 JavaDoc [https://apidoc.gitee.com/ld/J2Cache/](https://apidoc.gitee.com/ld/J2Cache/)
@@ -14,21 +45,21 @@ J2Cache 已经有 Python 语言版本了，详情请看 [https://gitee.com/ld/Py
 
 J2Cache 从 1.3.0 版本开始支持 JGroups 和 Redis Pub/Sub 两种方式进行缓存事件的通知。在某些云平台上可能无法使用 JGroups 组播方式，可以采用 Redis 发布订阅的方式。详情请看 j2cache.properties 配置文件的说明。
 
-视频介绍：http://v.youku.com/v_show/id_XNzAzMTY5MjUy.html  
+视频介绍：http://v.youku.com/v_show/id_XNzAzMTY5MjUy.html
 
 J2Cache 的两级缓存结构
 
-L1： 进程内缓存(caffeine\ehcache)   
+L1： 进程内缓存(caffeine\ehcache)
 L2： Redis 集中式缓存
 
-		 
+
 ## 数据读取
 
 1. 读取顺序  -> L1 -> L2 -> DB
 
-2. 数据更新  
+2. 数据更新
 
-    1 从数据库中读取最新数据，依次更新 L1 -> L2 ，发送广播清除某个缓存信息  
+    1 从数据库中读取最新数据，依次更新 L1 -> L2 ，发送广播清除某个缓存信息
     2 接收到广播（手工清除缓存 & 一级缓存自动失效），从 L1 中清除指定的缓存信息
 
 ## J2Cache 配置
@@ -47,11 +78,11 @@ J2Cache 运行时所需 jar 包请查看 core/pom.xml
 
 ## 测试方法
 
-1. 安装 Redis  
+1. 安装 Redis
 2. `git clone https://gitee.com/ld/J2Cache`
 3. 修改 `core/resource/j2cache.properties` 配置使用已安装的 Redis 服务器
-4. 在命令行中执行 `mvn package -DskipTests=true` 进行项目编译  
-5. 打开多个命令行窗口，同时运行 `runtest.sh` 
+4. 在命令行中执行 `mvn package -DskipTests=true` 进行项目编译
+5. 打开多个命令行窗口，同时运行 `runtest.sh`
 6. 在 > 提示符后输入 help 查看命令，并进行测试
 
 ## 示例代码
@@ -71,14 +102,14 @@ J2Cache 默认使用 [Caffeine](https://www.oschina.net/p/ben-manes-caffeine) �
 
 ```
 <dependency>
-  <groupId>net.oschina.j2cache</groupId>  
-  <artifactId>j2cache-core</artifactId>  
-  <version>xxxxx</version>  
+  <groupId>net.oschina.j2cache</groupId>
+  <artifactId>j2cache-core</artifactId>
+  <version>xxxxx</version>
 </dependency>
 ```
 
 **二. 准备配置**
- 
+
 拷贝 `j2cache.properties` 和 `caffeine.properties` 到你项目的源码目录，并确保这些文件会被编译到项目的 classpath 中。如果你选择了 ehcache 作为一级缓存，需要拷贝 `ehcache.xml` 或者 `ehcache3.xml` 到源码目录（后者对应的是 Ehcache 3.x 版本），这些配置文件的模板可以从 [https://gitee.com/ld/J2Cache/tree/master/core/resources](https://gitee.com/ld/J2Cache/tree/master/core/resources) 这里获取。
 
 使用你喜欢的文本编辑器打开 `j2cache.properties` 并找到 `redis.hosts` 项，将其信息改成你的 Redis 服务器所在的地址和端口。
@@ -89,18 +120,18 @@ J2Cache 默认使用 [Caffeine](https://www.oschina.net/p/ben-manes-caffeine) �
 
 **三. 编写代码**
 
-Test.java  
+Test.java
 
 ```
 public static void main(String[] args) {
     CacheChannel cache = J2Cache.getChannel();
-    
+
     //缓存操作
     cache.set("default", "1", "Hello J2Cache");
     System.out.println(cache.get("default", "1"));
     cache.evict("default", "1");
     System.out.println(cache.get("default", "1"));
-    
+
     cache.close();
 }
 ```
@@ -126,34 +157,34 @@ channel.close();
 
 ## 常见问题
 
-1. **J2Cache 的使用场景是什么？**  
+1. **J2Cache 的使用场景是什么？**
 首先你的应用是运行在集群环境，使用 J2Cache 可以有效降低节点间的数据传输量；其次单节点使用 J2Cache 可以避免应用重启后对后端业务系统的冲击
 
-2. **为什么不能在程序中设置缓存的有效期**  
+2. **为什么不能在程序中设置缓存的有效期**
 在程序中定义缓存数据的有效期会导致缓存不可控，一旦数据出问题无从查起，因此 J2Cache 的所有缓存的有效期都必须在 `一级缓存` 的配置中预设好再使用
 
-3. **如何使用 JGroups 组播方式（无法在云主机中使用）**  
+3. **如何使用 JGroups 组播方式（无法在云主机中使用）**
 首先修改 `j2cache.properties` 中的 `j2cache.broadcast` 值为 `jgroups`，然后在 maven 中引入
-	
-	```
-	<dependency>
-	    <groupId>org.jgroups</groupId>
-	    <artifactId>jgroups</artifactId>
-	    <version>3.6.13.Final</version>
-	</dependency>
-	```
 
-4. **如何使用 ehcache 作为一级缓存**  
-首先修改 `j2cache.properties` 中的 `j2cache.L1.provider_class` 为 ehcache 或者 ehcache3，然后拷贝 ehcache.xml 或者 ehcache3.xml 到类路径，并配置好缓存，需要在项目中引入对 ehcache 的支持：  
+    ```
+    <dependency>
+        <groupId>org.jgroups</groupId>
+        <artifactId>jgroups</artifactId>
+        <version>3.6.13.Final</version>
+    </dependency>
+    ```
 
-	```
+4. **如何使用 ehcache 作为一级缓存**
+首先修改 `j2cache.properties` 中的 `j2cache.L1.provider_class` 为 ehcache 或者 ehcache3，然后拷贝 ehcache.xml 或者 ehcache3.xml 到类路径，并配置好缓存，需要在项目中引入对 ehcache 的支持：
+
+    ```
     <dependency><!-- Ehcache 2.x //-->
         <groupId>net.sf.ehcache</groupId>
         <artifactId>ehcache</artifactId>
         <version>2.10.4</version>
         <optional>true</optional>
     </dependency>
-    
+
     <dependency><!-- Ehcache 3.x //-->
         <groupId>org.ehcache</groupId>
         <artifactId>ehcache</artifactId>
@@ -161,11 +192,11 @@ channel.close();
         <optional>true</optional>
     </dependency>
 
-	```
+    ```
 
 5. **为什么 J2Cache 初始化时，连接本机的 Redis 非常慢，要 5 秒以上？**
 
-    如果出现这种情况，请在系统 hosts 里配置机器名和IP地址的对应关系，例如：  
+    如果出现这种情况，请在系统 hosts 里配置机器名和IP地址的对应关系，例如：
 
     ```
     127.0.0.1       localhost
@@ -173,8 +204,8 @@ channel.close();
     ::1             localhost
     ::1             winter-notebook.local
     ```
-    
-6. **使用何种 Redis 的存储模式最佳？ generic 还是 hash ?**  
+
+6. **使用何种 Redis 的存储模式最佳？ generic 还是 hash ?**
 
     我们推荐使用 generic 存储模式，这也是 J2Cache 默认的存储模式。因为 hash 在语义上并不合适
    ，2.0 版本保留对 hash 的支持只是为了兼容之前 1.x 版本。hash 模式最大的问题是无法单独对 key 进行 expire 设置。
